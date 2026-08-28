@@ -13,6 +13,7 @@ let package = Package(
         .executableTarget(
             name: "DiscScanner",
             dependencies: ["DiscScannerCore"],
+            resources: [.process("Resources")],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
