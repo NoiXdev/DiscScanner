@@ -36,7 +36,8 @@ public extension FileNode {
     /// Depth-first lookup by absolute path. Prunes branches that are not path prefixes.
     func find(path: String) -> FileNode? {
         if self.path == path { return self }
-        guard path.hasPrefix(self.path + "/") else { return nil }
+        let prefix = self.path.hasSuffix("/") ? self.path : self.path + "/"
+        guard path.hasPrefix(prefix) else { return nil }
         for child in children {
             if let found = child.find(path: path) { return found }
         }

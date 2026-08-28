@@ -43,4 +43,20 @@ struct FileNodeTests {
         let emptyDir = MutableNode(name: "e", path: "/e", isDirectory: true, parent: nil).snapshot()
         #expect(emptyDir.outlineChildren == nil)
     }
+
+    @Test func findWorksWithFilesystemRoot() {
+        let root = MutableNode(name: "", path: "/", isDirectory: true, parent: nil)
+        let apps = MutableNode(name: "apps", path: "/apps", isDirectory: true, parent: root)
+        let xbin = MutableNode(name: "x.bin", path: "/apps/x.bin", isDirectory: false, parent: apps)
+        xbin.allocatedSize = 256
+        apps.children = [xbin]
+        apps.allocatedSize = 256
+        root.children = [apps]
+        root.allocatedSize = 256
+
+        let node = root.snapshot()
+        #expect(node.find(path: "/") != nil)
+        #expect(node.find(path: "/apps") != nil)
+        #expect(node.find(path: "/apps/x.bin")?.allocatedSize == 256)
+    }
 }
