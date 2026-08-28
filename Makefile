@@ -19,6 +19,7 @@ app: build
 	if [ -d "$(BUILD_DIR)/$(APP_NAME)_$(APP_NAME).bundle" ]; then \
 		cp -R "$(BUILD_DIR)/$(APP_NAME)_$(APP_NAME).bundle" $(APP_BUNDLE)/Contents/Resources/; \
 	fi
+	mkdir -p $(APP_BUNDLE)/Contents/Resources/en.lproj $(APP_BUNDLE)/Contents/Resources/de.lproj
 	codesign --force --sign - $(APP_BUNDLE)
 	@echo "Built $(APP_BUNDLE)"
 

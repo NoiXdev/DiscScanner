@@ -1,0 +1,103 @@
+#!/bin/bash
+# Builds, signs, notarizes and staples the DiscScanner release DMG.
+#
+# Notarization credentials, two modes (auto-detected):
+#   CI:    APPLE_API_KEY (path to the .p8), APPLE_API_KEY_ID and
+#          APPLE_API_ISSUER in the environment — the release workflow
+#          prepares these from org secrets.
+#   Local: keychain profile "discscanner-notary". One-time setup by the
+#          maintainer (secrets never touch this repo):
+#            xcrun notarytool store-credentials discscanner-notary \
+#                --apple-id <apple-id> --team-id 5V8ZCK434F
+#
+# DISCSCANNER_VERSION overrides the version (the release workflow derives
+# it from the tag); locally it falls back to the latest git tag.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+IDENTITY="Developer ID Application: Tim Rösner (5V8ZCK434F)"
+PROFILE="discscanner-notary"
+# Version: from DISCSCANNER_VERSION (CI derives it from the tag) or the
+# latest local tag — never a hardcoded default that silently mislabels a
+# build.
+VERSION="${DISCSCANNER_VERSION:-$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')}"
+[ -n "$VERSION" ] || { echo "error: no DISCSCANNER_VERSION and no tag to derive it from" >&2; exit 1; }
+APP="dist/DiscScanner.app"
+DMG="dist/DiscScanner-${VERSION}.dmg"
+
+# --- preflight -------------------------------------------------------------
+[ -z "$(git status --porcelain)" ] || {
+    echo "error: working tree not clean — commit or stash first" >&2; exit 1; }
+security find-identity -v -p codesigning | grep -Fq "$IDENTITY" || {
+    echo "error: signing identity not found in the keychain: $IDENTITY" >&2; exit 1; }
+if [ -n "${APPLE_API_KEY:-}" ]; then
+    # CI mode: App Store Connect API key from the environment.
+    [ -n "${APPLE_API_KEY_ID:-}" ] && [ -n "${APPLE_API_ISSUER:-}" ] || {
+        echo "error: APPLE_API_KEY is set but APPLE_API_KEY_ID/APPLE_API_ISSUER are missing" >&2
+        exit 1; }
+    NOTARY_AUTH=(--key "$APPLE_API_KEY" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER")
+else
+    xcrun notarytool history --keychain-profile "$PROFILE" >/dev/null 2>&1 || {
+        echo "error: keychain profile '$PROFILE' missing." >&2
+        echo "Create it once (maintainer only):" >&2
+        echo "  xcrun notarytool store-credentials $PROFILE --apple-id <apple-id> --team-id 5V8ZCK434F" >&2
+        exit 1; }
+    NOTARY_AUTH=(--keychain-profile "$PROFILE")
+fi
+
+# --- build + sign ----------------------------------------------------------
+# No entitlements: the app is not sandboxed and needs none. Hardened runtime
+# stays on via `--options runtime` (a codesign option, not an entitlement) —
+# notarization requires it.
+DISCSCANNER_VERSION="$VERSION" scripts/package-app
+
+# Inside-out signing order, and it matters: every nested piece of code must
+# be signed BEFORE the enclosing bundle, or the app's signature seals stale
+# hashes and `codesign --verify --deep` rejects it.
+codesign --force --timestamp --sign "$IDENTITY" \
+    "$APP/Contents/Resources/DiscScanner_DiscScanner.bundle"
+codesign --force --options runtime --timestamp \
+    --sign "$IDENTITY" "$APP"
+codesign --verify --deep --strict "$APP"
+# `-dvv`, not `-dv`: codesign prints `Authority=` lines only at verbosity 2.
+echo "signed: $(codesign -dvv "$APP" 2>&1 | grep '^Authority=Developer ID Application')"
+
+# --- notarize the app, staple it -------------------------------------------
+ZIP="dist/DiscScanner-${VERSION}.zip"
+ditto -c -k --keepParent "$APP" "$ZIP"
+# `|| true`: a rejected submission exits non-zero, which under pipefail
+# would abort HERE and skip the guidance below — the grep on the captured
+# JSON is the single source of truth for acceptance.
+xcrun notarytool submit "$ZIP" ${NOTARY_AUTH[@]+"${NOTARY_AUTH[@]}"} --wait \
+    --output-format json | tee dist/notary-app.json || true
+grep -Eq '"status"[[:space:]]*:[[:space:]]*"Accepted"' dist/notary-app.json || {
+    echo "error: app notarization not accepted — fetch the log with:" >&2
+    echo "  xcrun notarytool log <submission-id> <same auth flags>" >&2
+    exit 1; }
+xcrun stapler staple "$APP"
+rm -f "$ZIP"
+
+# --- build the DMG from the STAPLED app, sign + notarize + staple it -------
+STAGING="dist/dmg-staging"
+rm -rf "$STAGING"; mkdir -p "$STAGING"
+cp -R "$APP" "$STAGING/"
+ln -s /Applications "$STAGING/Applications"
+hdiutil create -volname "DiscScanner" -srcfolder "$STAGING" -ov -format UDZO "$DMG"
+rm -rf "$STAGING"
+codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+
+xcrun notarytool submit "$DMG" ${NOTARY_AUTH[@]+"${NOTARY_AUTH[@]}"} --wait \
+    --output-format json | tee dist/notary-dmg.json || true
+grep -Eq '"status"[[:space:]]*:[[:space:]]*"Accepted"' dist/notary-dmg.json || {
+    echo "error: DMG notarization not accepted — fetch the log with:" >&2
+    echo "  xcrun notarytool log <submission-id> <same auth flags>" >&2
+    exit 1; }
+xcrun stapler staple "$DMG"
+
+# --- final proof -----------------------------------------------------------
+spctl --assess --type execute -v "$APP"
+codesign --verify --deep --strict "$APP"
+spctl --assess --type open --context context:primary-signature -v "$DMG"
+xcrun stapler validate "$APP"
+xcrun stapler validate "$DMG"
+echo "RELEASE OK: $DMG"

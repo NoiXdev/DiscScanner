@@ -1,38 +1,74 @@
 # DiscScanner
 
-A small macOS app that scans a folder or volume recursively and shows where
-disk space is used — as a size-sorted tree and as a treemap — with options to
-move items to the Trash or delete them permanently.
+**See what is eating your disk space — a fast, native disk-usage scanner
+for the Mac.**
 
-## Requirements
+Pick a folder or a whole volume and watch the results fill in live while
+the scan runs: every folder and file sorted by size, as an expandable tree
+or as a treemap. Found the space hog? Delete it right there — to the Trash,
+or permanently.
 
-- macOS 14+
-- Xcode 16+ command line tools (Swift 6 toolchain)
+## Features
 
-## Build & Run
+- **Live scanning** — results appear while the scan is still running:
+  the tree grows, sizes count up, and a status line shows elapsed time.
+  Scanning a whole volume also shows percent done and a remaining-time
+  estimate. Cancel any time and keep the partial result.
+- **Tree view** — expandable folder tree, largest first, with a size bar
+  per row showing each item's share of its parent.
+- **Treemap view** — the classic mosaic: big files are big rectangles.
+  Double-click zooms into a folder, a breadcrumb takes you back up.
+- **Delete from the app** — single or multi-selection, with a clear
+  choice between **Move to Trash** (undoable) and **Delete Permanently**
+  (with a warning). Sizes update immediately, no rescan needed.
+- **Reveal in Finder** from both views.
+- **Protected folders are handled gracefully** — anything unreadable is
+  marked and skipped, never a crash or an aborted scan, with a hint on
+  how to grant Full Disk Access for complete volume scans.
+- **English and German** interface.
 
-    make run        # builds build/DiscScanner.app and opens it
-    make test       # runs the unit test suite
-    swift run       # development run without bundling
+## Install
+
+1. Download the latest DMG from the [releases page](https://github.com/NoiXdev/DiscScanner/releases).
+2. Open it and drag **DiscScanner** into **Applications**.
+3. Requires macOS 14 or newer. The app is signed and notarized.
 
 ## Full Disk Access
 
-To scan protected areas (other users' folders, parts of the system volume),
-grant the app Full Disk Access: System Settings → Privacy & Security →
-Full Disk Access → add `build/DiscScanner.app`. Without it, unreadable
-folders are marked with a lock icon and skipped.
+To scan protected areas (other users' folders, parts of the system
+volume), grant the app Full Disk Access: **System Settings → Privacy &
+Security → Full Disk Access** → add DiscScanner, then restart the app.
+The app offers this at first launch, too. Without it, unreadable folders
+are simply marked and skipped.
+
+Note: a handful of system-protected folders remain unreadable even with
+Full Disk Access — the scan summary counts them, and that is normal.
 
 ## Notes
 
 - Sizes are allocated-on-disk bytes, so totals can differ slightly from
-  Finder's "logical" sizes.
-- Deleting to Trash is undoable via the Finder; permanent deletion is not.
+  the Finder's "logical" sizes.
+- Deleting to the Trash can be undone in the Finder; permanent deletion
+  cannot.
 
-## Note on rebuilds and Full Disk Access
+## Building from source
 
-The app is ad-hoc signed, so every `make app` produces a binary macOS treats
-as a *new* app for privacy (TCC) purposes. If Full Disk Access stops working
-after a rebuild even though the toggle looks enabled: remove the app from the
-Full Disk Access list (or toggle it off and on again), re-add
-`build/DiscScanner.app`, and restart the app. Grants also only take effect
-after an app restart.
+Requires macOS 14+ and the Xcode 16+ command line tools.
+
+    make run        # builds build/DiscScanner.app (ad-hoc signed) and opens it
+    make test       # runs the unit test suite
+    swift run       # development run without bundling
+
+Release artifacts (signed, notarized, universal DMG) are produced by
+`scripts/release` — maintainer credentials required; CI builds them from
+tags automatically.
+
+For development builds only: the ad-hoc signature changes on every
+rebuild, so macOS treats each build as a new app for privacy (TCC)
+purposes. If Full Disk Access stops applying after a rebuild, remove and
+re-add the app in the Full Disk Access list, then restart it. Released
+builds are Developer ID signed and keep their grants.
+
+## License
+
+[MIT](LICENSE)

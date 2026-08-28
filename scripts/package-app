@@ -1,0 +1,68 @@
+#!/bin/bash
+# Assembles dist/DiscScanner.app from a fresh release build (universal
+# binary). Localization NOTE (macSCP M5i lesson): macOS picks the app
+# language from the MAIN bundle's localizations — the empty en.lproj/de.lproj
+# markers are what make the German strings inside the SPM resource bundle
+# reachable at all.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+# DISCSCANNER_VERSION overrides (the release workflow derives it from the tag).
+VERSION="${DISCSCANNER_VERSION:-1.0.0}"
+BUILD="${DISCSCANNER_BUILD:-1}"
+
+# Universal binary: two single-arch slices + lipo (the SwiftPM native
+# pipeline; Intel Macs run macOS 14 too).
+swift build -c release --triple arm64-apple-macosx
+swift build -c release --triple x86_64-apple-macosx
+ARM_BIN="$(swift build -c release --triple arm64-apple-macosx --show-bin-path)"
+X86_BIN="$(swift build -c release --triple x86_64-apple-macosx --show-bin-path)"
+
+APP="dist/DiscScanner.app"
+rm -rf dist
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+
+lipo -create "$ARM_BIN/DiscScanner" "$X86_BIN/DiscScanner" \
+    -output "$APP/Contents/MacOS/DiscScanner"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+# Resource bundles are architecture-independent — take the arm64 build's.
+cp -R "$ARM_BIN/DiscScanner_DiscScanner.bundle" "$APP/Contents/Resources/"
+mkdir "$APP/Contents/Resources/en.lproj" "$APP/Contents/Resources/de.lproj"
+
+cat > "$APP/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>de</string>
+    </array>
+    <key>CFBundleDisplayName</key><string>DiscScanner</string>
+    <key>CFBundleExecutable</key><string>DiscScanner</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundleIdentifier</key><string>dev.noix.discscanner</string>
+    <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+    <key>CFBundleName</key><string>DiscScanner</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>${VERSION}</string>
+    <key>CFBundleVersion</key><string>${BUILD}</string>
+    <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>NSHumanReadableCopyright</key><string>© 2026 noix</string>
+    <key>NSPrincipalClass</key><string>NSApplication</string>
+    <key>NSHighResolutionCapable</key><true/>
+</dict>
+</plist>
+PLIST
+
+plutil -lint "$APP/Contents/Info.plist"
+test -x "$APP/Contents/MacOS/DiscScanner"
+# Both architectures must be present.
+lipo -archs "$APP/Contents/MacOS/DiscScanner" | grep -q x86_64
+lipo -archs "$APP/Contents/MacOS/DiscScanner" | grep -q arm64
+test -d "$APP/Contents/Resources/DiscScanner_DiscScanner.bundle"
+test -d "$APP/Contents/Resources/en.lproj" -a -d "$APP/Contents/Resources/de.lproj"
+echo "wrote $APP (v${VERSION}, build ${BUILD})"
