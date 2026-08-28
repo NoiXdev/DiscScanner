@@ -58,8 +58,7 @@ struct ContentView: View {
         case .list:
             TreeListView(appState: appState, root: root)
         case .treemap:
-            // Replaced with the real treemap in Task 11.
-            Text(L("view.treemap"))
+            TreemapView(appState: appState, root: root)
         }
     }
 
