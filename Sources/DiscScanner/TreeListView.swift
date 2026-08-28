@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import DiscScannerCore
 
 @MainActor
@@ -17,7 +18,9 @@ private enum IconCache {
             return cachedIcon
         }
 
-        let icon = NSWorkspace.shared.icon(forFile: node.path)
+        let icon = node.isDirectory
+            ? NSWorkspace.shared.icon(for: UTType.folder)
+            : NSWorkspace.shared.icon(forFile: node.path)
         cache[key] = icon
         return icon
     }
@@ -36,6 +39,7 @@ struct TreeListView: View {
         .contextMenu(forSelectionType: String.self) { paths in
             Button(L("menu.showInFinder")) { revealInFinder(paths) }
             Button(L("menu.delete"), role: .destructive) { appState.requestDelete(paths: paths) }
+                .disabled(appState.isScanning)
         }
     }
 

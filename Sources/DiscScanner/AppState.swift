@@ -24,6 +24,7 @@ final class AppState {
     var showFailureAlert = false
 
     private var scanTask: Task<Void, Never>?
+    private var scanGeneration = UUID()
 
     func startScan(url: URL) {
         cancelScan()
@@ -32,10 +33,12 @@ final class AppState {
         treemapZoomPath = nil
         progress = ScanProgress()
         isScanning = true
+        let generation = UUID()
+        scanGeneration = generation
         let scanner = DiskScanner()
         scanTask = Task { [weak self] in
             for await event in scanner.scan(url: url) {
-                guard let self else { return }
+                guard let self, self.scanGeneration == generation else { return }
                 switch event {
                 case .progress(let progress):
                     self.progress = progress
@@ -46,11 +49,13 @@ final class AppState {
                     self.isScanning = false
                 }
             }
-            self?.isScanning = false
+            guard let self, self.scanGeneration == generation else { return }
+            self.isScanning = false
         }
     }
 
     func cancelScan() {
+        scanGeneration = UUID()
         scanTask?.cancel()
         scanTask = nil
         isScanning = false

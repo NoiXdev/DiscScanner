@@ -9,7 +9,8 @@ struct ScanEngineTests {
     ///   sub1/c.bin        50 KiB
     ///   sub1/nested/d.bin 24 KiB
     ///   link -> sub1     (symlink, must not be followed)
-    /// All sizes are 4096-multiples so allocated size == byte count on APFS.
+    /// Sizes are mostly block-aligned; assertions allow one block (4096 bytes)
+    /// of slack for APFS allocation rounding.
     private func makeFixture() throws -> URL {
         let fm = FileManager.default
         let root = fm.temporaryDirectory.appendingPathComponent("scan-fixture-\(UUID().uuidString)")
