@@ -39,7 +39,7 @@ final class ScanState: @unchecked Sendable {
         lock.withLock { progress }
     }
 
-    func treeSnapshot() -> FileNode? {
-        lock.withLock { root?.snapshot() }
+    func treeSnapshot(maxDepth: Int? = nil) -> FileNode? {
+        lock.withLock { root?.snapshot(maxDepth: maxDepth) }
     }
 }

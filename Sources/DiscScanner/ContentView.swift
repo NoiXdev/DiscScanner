@@ -10,13 +10,13 @@ struct ContentView: View {
             if let root = appState.root {
                 mainContent(root)
             } else {
-                ContentUnavailableView(L("empty.prompt"), systemImage: "internaldrive")
+                emptyState
             }
         }
         .frame(minWidth: 700, minHeight: 450)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .top, spacing: 0) {
-            if appState.progress.accessDeniedCount > 0 {
+            if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {
                 accessDeniedBanner
             }
         }
@@ -97,9 +97,59 @@ struct ContentView: View {
         }
     }
 
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label("DiscScanner", systemImage: "internaldrive")
+        } description: {
+            Text(L("empty.prompt"))
+        } actions: {
+            HStack(spacing: 12) {
+                Button {
+                    appState.startScan(url: URL(fileURLWithPath: "/"))
+                } label: {
+                    Label(L("empty.scanRoot", rootVolumeName), systemImage: "internaldrive")
+                }
+                .buttonStyle(.borderedProminent)
+                Button {
+                    openFolder()
+                } label: {
+                    Label(L("app.open"), systemImage: "folder")
+                }
+            }
+        }
+    }
+
+    private var rootVolumeName: String {
+        let values = try? URL(fileURLWithPath: "/")
+            .resourceValues(forKeys: [.volumeLocalizedNameKey])
+        return values?.volumeLocalizedName ?? "Macintosh HD"
+    }
+
+    /// Elapsed time, plus percentage and a rough remaining-time estimate for
+    /// volume-root scans (folder scans have no predictable total).
+    private var scanTimingInfo: String {
+        var parts: [String] = []
+        guard let start = appState.scanStartDate else { return "" }
+        let elapsed = Date().timeIntervalSince(start)
+        parts.append(Format.duration(elapsed))
+        if let expected = appState.expectedTotalBytes, expected > 0 {
+            let fraction = min(Double(appState.progress.totalBytes) / Double(expected), 1)
+            parts.append("\(Int(fraction * 100)) %")
+            if fraction > 0.05, fraction < 1 {
+                let remaining = elapsed * (1 - fraction) / fraction
+                parts.append(L("status.remaining", Format.duration(remaining)))
+            }
+        }
+        return parts.joined(separator: " · ")
+    }
+
     private var statusBar: some View {
         HStack {
             if appState.isScanning {
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    Text(scanTimingInfo)
+                        .monospacedDigit()
+                }
                 Text(L("status.scanning", appState.progress.currentPath))
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -128,6 +178,13 @@ struct ContentView: View {
                 .foregroundStyle(.yellow)
             Text(L("banner.accessDenied", Format.count(appState.progress.accessDeniedCount)))
             Spacer()
+            Button {
+                appState.accessBannerDismissed = true
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
         }
         .font(.callout)
         .padding(8)

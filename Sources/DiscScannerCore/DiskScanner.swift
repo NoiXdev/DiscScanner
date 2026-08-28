@@ -10,11 +10,18 @@ public final class DiskScanner: @unchecked Sendable {
     }
 
     /// Starts a scan and returns a stream of batched events. A timer flushes
-    /// progress + a full snapshot tree every `interval`; on completion the
+    /// progress + a snapshot tree every `interval`; live snapshots are
+    /// depth-capped to `liveSnapshotDepth` levels (nil = full) so huge trees
+    /// do not stall the scan workers or the consumer. On completion the
     /// stream emits one final `.progress` followed by exactly one
-    /// `.finished` with the exact final tree, then completes. Terminating
-    /// the stream (e.g. by cancelling the consuming task) cancels the scan.
-    public func scan(url: URL, interval: TimeInterval = 0.25) -> AsyncStream<ScanEvent> {
+    /// `.finished` with the exact, uncapped final tree, then completes.
+    /// Terminating the stream (e.g. by cancelling the consuming task)
+    /// cancels the scan.
+    public func scan(
+        url: URL,
+        interval: TimeInterval = 0.4,
+        liveSnapshotDepth: Int? = 8
+    ) -> AsyncStream<ScanEvent> {
         let state = self.state
         return AsyncStream(bufferingPolicy: .bufferingNewest(16)) { continuation in
             let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
@@ -22,7 +29,7 @@ public final class DiskScanner: @unchecked Sendable {
             timer.setEventHandler {
                 guard !state.isFinished else { return }
                 continuation.yield(.progress(state.progressSnapshot()))
-                if let tree = state.treeSnapshot() {
+                if let tree = state.treeSnapshot(maxDepth: liveSnapshotDepth) {
                     continuation.yield(.snapshot(tree))
                 }
             }

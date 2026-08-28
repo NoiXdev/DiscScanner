@@ -22,6 +22,9 @@ final class AppState {
     var showDeleteDialog = false
     var deletionFailures: [DeletionFailure] = []
     var showFailureAlert = false
+    var scanStartDate: Date?
+    var expectedTotalBytes: Int64?
+    var accessBannerDismissed = false
 
     private var scanTask: Task<Void, Never>?
     private var scanGeneration = UUID()
@@ -33,6 +36,9 @@ final class AppState {
         treemapZoomPath = nil
         progress = ScanProgress()
         isScanning = true
+        scanStartDate = Date()
+        expectedTotalBytes = Self.volumeUsedBytes(for: url)
+        accessBannerDismissed = false
         let generation = UUID()
         scanGeneration = generation
         let scanner = DiskScanner()
@@ -47,10 +53,12 @@ final class AppState {
                 case .finished(let tree):
                     self.root = tree
                     self.isScanning = false
+                    self.scanStartDate = nil
                 }
             }
             guard let self, self.scanGeneration == generation else { return }
             self.isScanning = false
+            self.scanStartDate = nil
         }
     }
 
@@ -59,6 +67,25 @@ final class AppState {
         scanTask?.cancel()
         scanTask = nil
         isScanning = false
+        scanStartDate = nil
+    }
+
+    /// Estimated total for a volume-root scan (used bytes of that volume);
+    /// nil for ordinary folders, where the total is not predictable without
+    /// a pre-scan that would cost as much as the scan itself.
+    private static func volumeUsedBytes(for url: URL) -> Int64? {
+        let keys: Set<URLResourceKey> = [
+            .volumeURLKey, .volumeTotalCapacityKey, .volumeAvailableCapacityKey,
+        ]
+        guard
+            let values = try? url.resourceValues(forKeys: keys),
+            let volumeURL = values.volume,
+            volumeURL.standardizedFileURL.path == url.standardizedFileURL.path,
+            let total = values.volumeTotalCapacity,
+            let available = values.volumeAvailableCapacity,
+            total > available
+        else { return nil }
+        return Int64(total - available)
     }
 
     var pendingDeleteSize: Int64 {

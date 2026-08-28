@@ -20,3 +20,5 @@
 "fda.message" = "DiscScanner kann geschützte Bereiche (z. B. Ordner anderer Benutzer oder Teile des Systemvolumes) nur mit Festplattenvollzugriff scannen. Erteile ihn in Systemeinstellungen → Datenschutz & Sicherheit → Festplattenvollzugriff und starte die App danach neu. Ohne ihn werden nicht lesbare Ordner übersprungen.";
 "fda.openSettings" = "Systemeinstellungen öffnen";
 "fda.later" = "Später";
+"empty.scanRoot" = "„%@“ scannen";
+"status.remaining" = "noch ca. %@";

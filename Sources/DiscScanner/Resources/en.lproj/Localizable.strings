@@ -20,3 +20,5 @@
 "fda.message" = "DiscScanner can only scan protected areas (like other users' folders or parts of the system volume) with Full Disk Access. Grant it in System Settings → Privacy & Security → Full Disk Access, then restart the app. Without it, unreadable folders are skipped.";
 "fda.openSettings" = "Open System Settings";
 "fda.later" = "Later";
+"empty.scanRoot" = "Scan “%@”";
+"status.remaining" = "about %@ left";

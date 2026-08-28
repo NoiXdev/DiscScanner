@@ -18,14 +18,27 @@ final class MutableNode {
         self.parent = parent
     }
 
-    func snapshot() -> FileNode {
-        FileNode(
+    /// Converts the subtree into an immutable snapshot. `maxDepth` limits how
+    /// many child levels are copied (nil = unlimited): live UI snapshots use a
+    /// depth cap so huge trees do not stall workers or the main thread; the
+    /// final snapshot is always taken without a cap.
+    func snapshot(maxDepth: Int? = nil) -> FileNode {
+        let snapshotChildren: [FileNode]
+        if let maxDepth, maxDepth <= 0 {
+            snapshotChildren = []
+        } else {
+            let childDepth = maxDepth.map { $0 - 1 }
+            snapshotChildren = children
+                .map { $0.snapshot(maxDepth: childDepth) }
+                .sorted { $0.allocatedSize > $1.allocatedSize }
+        }
+        return FileNode(
             name: name,
             path: path,
             isDirectory: isDirectory,
             allocatedSize: allocatedSize,
             isAccessDenied: isAccessDenied,
-            children: children.map { $0.snapshot() }.sorted { $0.allocatedSize > $1.allocatedSize }
+            children: snapshotChildren
         )
     }
 }

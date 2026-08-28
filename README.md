@@ -27,3 +27,12 @@ folders are marked with a lock icon and skipped.
 - Sizes are allocated-on-disk bytes, so totals can differ slightly from
   Finder's "logical" sizes.
 - Deleting to Trash is undoable via the Finder; permanent deletion is not.
+
+## Note on rebuilds and Full Disk Access
+
+The app is ad-hoc signed, so every `make app` produces a binary macOS treats
+as a *new* app for privacy (TCC) purposes. If Full Disk Access stops working
+after a rebuild even though the toggle looks enabled: remove the app from the
+Full Disk Access list (or toggle it off and on again), re-add
+`build/DiscScanner.app`, and restart the app. Grants also only take effect
+after an app restart.
