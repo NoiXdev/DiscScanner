@@ -11,8 +11,9 @@ public final class DiskScanner: @unchecked Sendable {
 
     /// Starts a scan and returns a stream of batched events. A timer flushes
     /// progress + a full snapshot tree every `interval`; on completion the
-    /// exact final tree is delivered via `.finished`. Terminating the stream
-    /// (e.g. by cancelling the consuming task) cancels the scan.
+    /// stream emits one final `.progress` followed by exactly one
+    /// `.finished` with the exact final tree, then completes. Terminating
+    /// the stream (e.g. by cancelling the consuming task) cancels the scan.
     public func scan(url: URL, interval: TimeInterval = 0.25) -> AsyncStream<ScanEvent> {
         let state = self.state
         return AsyncStream(bufferingPolicy: .bufferingNewest(16)) { continuation in
@@ -31,7 +32,6 @@ public final class DiskScanner: @unchecked Sendable {
                 let finalTree = Self.performScan(url: url, state: state)
                 timer.cancel()
                 continuation.yield(.progress(state.progressSnapshot()))
-                continuation.yield(.snapshot(finalTree))
                 continuation.yield(.finished(finalTree))
                 continuation.finish()
             }
