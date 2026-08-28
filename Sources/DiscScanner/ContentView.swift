@@ -20,6 +20,36 @@ struct ContentView: View {
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { statusBar }
+        .confirmationDialog(
+            L(
+                "delete.title",
+                Format.count(appState.pendingDeletePaths.count),
+                Format.bytes(appState.pendingDeleteSize)
+            ),
+            isPresented: $appState.showDeleteDialog,
+            titleVisibility: .visible
+        ) {
+            Button(L("delete.trash")) { appState.performDelete(method: .trash) }
+            Button(L("delete.permanent"), role: .destructive) {
+                appState.performDelete(method: .permanent)
+            }
+            Button(L("common.cancel"), role: .cancel) {}
+        } message: {
+            Text(
+                ([L("delete.message")] + appState.pendingDeletePaths.prefix(8))
+                    .joined(separator: "\n")
+            )
+        }
+        .alert(L("delete.failures.title"), isPresented: $appState.showFailureAlert) {
+            Button(L("common.ok"), role: .cancel) {}
+        } message: {
+            Text(
+                appState.deletionFailures
+                    .prefix(5)
+                    .map { "\($0.path): \($0.message)" }
+                    .joined(separator: "\n")
+            )
+        }
     }
 
     @ViewBuilder

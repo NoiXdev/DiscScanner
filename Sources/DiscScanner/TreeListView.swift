@@ -35,6 +35,7 @@ struct TreeListView: View {
         }
         .contextMenu(forSelectionType: String.self) { paths in
             Button(L("menu.showInFinder")) { revealInFinder(paths) }
+            Button(L("menu.delete"), role: .destructive) { appState.requestDelete(paths: paths) }
         }
     }
 
