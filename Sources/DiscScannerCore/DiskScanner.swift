@@ -1,0 +1,100 @@
+import Foundation
+
+public final class DiskScanner: @unchecked Sendable {
+    let state = ScanState()
+
+    public init() {}
+
+    public func cancel() {
+        state.cancel()
+    }
+
+    private static let resourceKeys: [URLResourceKey] = [
+        .isDirectoryKey, .isSymbolicLinkKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey,
+    ]
+
+    /// Blocking parallel scan. Returns the final (or partial, if cancelled)
+    /// snapshot tree. Runs directories as work items on a concurrent queue.
+    static func performScan(url: URL, state: ScanState) -> FileNode {
+        let root = MutableNode(
+            name: url.lastPathComponent,
+            path: url.standardizedFileURL.path,
+            isDirectory: true,
+            parent: nil
+        )
+        state.setRoot(root)
+        let queue = DispatchQueue(
+            label: "DiscScanner.traversal",
+            qos: .userInitiated,
+            attributes: .concurrent
+        )
+        let group = DispatchGroup()
+        scanDirectory(root, state: state, queue: queue, group: group)
+        group.wait()
+        state.markFinished()
+        return state.treeSnapshot() ?? root.snapshot()
+    }
+
+    private static func scanDirectory(
+        _ node: MutableNode,
+        state: ScanState,
+        queue: DispatchQueue,
+        group: DispatchGroup
+    ) {
+        group.enter()
+        queue.async {
+            defer { group.leave() }
+            guard !state.isCancelled else { return }
+
+            let url = URL(fileURLWithPath: node.path, isDirectory: true)
+            let entries: [URL]
+            do {
+                entries = try FileManager.default.contentsOfDirectory(
+                    at: url,
+                    includingPropertiesForKeys: resourceKeys,
+                    options: []
+                )
+            } catch {
+                state.mutate { progress in
+                    node.isAccessDenied = true
+                    progress.accessDeniedCount += 1
+                }
+                return
+            }
+
+            var subdirectories: [MutableNode] = []
+            state.mutate { progress in
+                progress.directoriesScanned += 1
+                progress.currentPath = node.path
+                for entry in entries {
+                    let values = try? entry.resourceValues(forKeys: Set(resourceKeys))
+                    let isSymlink = values?.isSymbolicLink ?? false
+                    let isDirectory = !isSymlink && (values?.isDirectory ?? false)
+                    let child = MutableNode(
+                        name: entry.lastPathComponent,
+                        path: entry.standardizedFileURL.path,
+                        isDirectory: isDirectory,
+                        parent: node
+                    )
+                    node.children.append(child)
+                    if isDirectory {
+                        subdirectories.append(child)
+                    } else {
+                        let size = Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
+                        child.allocatedSize = size
+                        progress.filesScanned += 1
+                        progress.totalBytes += size
+                        var ancestor: MutableNode? = node
+                        while let current = ancestor {
+                            current.allocatedSize += size
+                            ancestor = current.parent
+                        }
+                    }
+                }
+            }
+            for subdirectory in subdirectories {
+                scanDirectory(subdirectory, state: state, queue: queue, group: group)
+            }
+        }
+    }
+}
