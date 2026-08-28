@@ -9,6 +9,39 @@ public final class DiskScanner: @unchecked Sendable {
         state.cancel()
     }
 
+    /// Starts a scan and returns a stream of batched events. A timer flushes
+    /// progress + a full snapshot tree every `interval`; on completion the
+    /// exact final tree is delivered via `.finished`. Terminating the stream
+    /// (e.g. by cancelling the consuming task) cancels the scan.
+    public func scan(url: URL, interval: TimeInterval = 0.25) -> AsyncStream<ScanEvent> {
+        let state = self.state
+        return AsyncStream(bufferingPolicy: .bufferingNewest(16)) { continuation in
+            let timer = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
+            timer.schedule(deadline: .now() + interval, repeating: interval)
+            timer.setEventHandler {
+                guard !state.isFinished else { return }
+                continuation.yield(.progress(state.progressSnapshot()))
+                if let tree = state.treeSnapshot() {
+                    continuation.yield(.snapshot(tree))
+                }
+            }
+            timer.resume()
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                let finalTree = Self.performScan(url: url, state: state)
+                timer.cancel()
+                continuation.yield(.progress(state.progressSnapshot()))
+                continuation.yield(.snapshot(finalTree))
+                continuation.yield(.finished(finalTree))
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in
+                state.cancel()
+            }
+        }
+    }
+
     private static let resourceKeys: [URLResourceKey] = [
         .isDirectoryKey, .isSymbolicLinkKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey,
     ]
