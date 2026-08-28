@@ -2153,3 +2153,18 @@ git commit -m "build: add app bundling via Makefile and Info.plist"
 - [ ] Treemap: zoom in/out via double-click and breadcrumb.
 - [ ] German run via `-AppleLanguages '(de)'`.
 - [ ] `git log --oneline` — conventional commits only.
+
+---
+
+## Post-Implementation Notes (2026-08-28)
+
+All 12 tasks completed; final whole-branch review passed after fix commit 768db1e.
+
+Tracked follow-ups (not merge-blocking, from reviews):
+- Snapshot scalability: full-tree snapshot under the scan lock 4×/s does not scale to multi-million-node volume scans (plan-level limitation). Mitigations: depth-capped snapshots or size-scaled interval.
+- Truncated path lists in delete dialog/failure alert lack an "…and N more" line.
+- Status-bar counters (files/bytes) go stale after deletions; recompute from root when idle.
+- Treemap: labels always white (contrast in light mode); zero-size access-denied dirs invisible (weight 0); context menu acts on selection, not right-clicked tile.
+- Info.plist: add CFBundleLocalizations (en, de) and TCC usage-description strings (Desktop/Documents/Removable Volumes).
+- DiskScanner is single-use per instance (shared ScanState) — document or enforce.
+- Minor: hoist Set(resourceKeys) in scanner loop; TreePruner no-op short-circuit; SizeBar constants; a11y labels (lock icon, view picker).
