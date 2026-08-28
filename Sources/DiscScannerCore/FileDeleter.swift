@@ -27,6 +27,7 @@ public struct DeletionResult: Sendable {
 
 public enum FileDeleter {
     /// Deletes each path independently; one failure never aborts the rest.
+    /// Callers are expected to pass pre-pruned, non-overlapping paths; see `pruneRedundant`.
     public static func delete(paths: [String], method: DeletionMethod) -> DeletionResult {
         var deleted: [String] = []
         var failures: [DeletionFailure] = []
@@ -52,7 +53,10 @@ public enum FileDeleter {
     public static func pruneRedundant(_ paths: Set<String>) -> [String] {
         paths.filter { path in
             !paths.contains { other in
-                other != path && path.hasPrefix(other + "/")
+                other != path && {
+                    let prefix = other.hasSuffix("/") ? other : other + "/"
+                    return path.hasPrefix(prefix)
+                }()
             }
         }
         .sorted()

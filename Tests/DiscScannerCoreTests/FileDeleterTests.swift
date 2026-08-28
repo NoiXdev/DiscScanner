@@ -37,4 +37,8 @@ struct FileDeleterTests {
         let paths: Set<String> = ["/a", "/a/b", "/a/b/c", "/ax", "/c/d"]
         #expect(FileDeleter.pruneRedundant(paths) == ["/a", "/ax", "/c/d"])
     }
+
+    @Test func pruneRedundantHandlesFilesystemRoot() {
+        #expect(FileDeleter.pruneRedundant(["/", "/a", "/c/d"]) == ["/"])
+    }
 }
