@@ -5,7 +5,7 @@
 "status.scanning" = "Scanne: %@";
 "status.done" = "Scan abgeschlossen";
 "status.summary" = "%@ Dateien · %@ Ordner · %@";
-"banner.accessDenied" = "%@ Ordner konnten nicht gelesen werden. Erteile „Festplattenvollzugriff" in Systemeinstellungen → Datenschutz & Sicherheit, um geschützte Bereiche zu scannen.";
+"banner.accessDenied" = "%@ Ordner konnten nicht gelesen werden. Erteile „Festplattenvollzugriff“ in Systemeinstellungen → Datenschutz & Sicherheit, um geschützte Bereiche zu scannen.";
 "empty.prompt" = "Öffne einen Ordner oder ein Volume, um zu sehen, was deinen Speicher belegt.";
 "menu.showInFinder" = "Im Finder zeigen";
 "menu.delete" = "Löschen…";
