@@ -3,6 +3,7 @@ import DiscScannerCore
 
 struct ContentView: View {
     @Bindable var appState: AppState
+    @State private var showFullDiskAccessAlert = false
 
     var body: some View {
         Group {
@@ -49,6 +50,17 @@ struct ContentView: View {
                     .map { "\($0.path): \($0.message)" }
                     .joined(separator: "\n")
             )
+        }
+        .alert(L("fda.title"), isPresented: $showFullDiskAccessAlert) {
+            Button(L("fda.openSettings")) { FullDiskAccess.openSystemSettings() }
+            Button(L("fda.later"), role: .cancel) {}
+        } message: {
+            Text(L("fda.message"))
+        }
+        .onAppear {
+            if !FullDiskAccess.isGranted {
+                showFullDiskAccessAlert = true
+            }
         }
     }
 
