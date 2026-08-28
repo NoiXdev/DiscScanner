@@ -1,6 +1,23 @@
 import SwiftUI
 import DiscScannerCore
 
+@MainActor
+private enum IconCache {
+    private static var cache: [String: NSImage] = [:]
+
+    static func icon(for node: FileNode) -> NSImage {
+        let cacheKey = node.outlineChildren != nil ? "//dir" : (node.path as NSString).pathExtension.lowercased().isEmpty ? "" : (node.path as NSString).pathExtension.lowercased()
+
+        if let cachedIcon = cache[cacheKey] {
+            return cachedIcon
+        }
+
+        let icon = NSWorkspace.shared.icon(forFile: node.path)
+        cache[cacheKey] = icon
+        return icon
+    }
+}
+
 struct TreeListView: View {
     @Bindable var appState: AppState
     let root: FileNode
@@ -52,7 +69,7 @@ private struct FileRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: node.path))
+            Image(nsImage: IconCache.icon(for: node))
                 .resizable()
                 .frame(width: 16, height: 16)
             Text(node.name)
