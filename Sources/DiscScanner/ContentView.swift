@@ -22,10 +22,15 @@ struct ContentView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) { statusBar }
     }
 
-    // Replaced with the real list/treemap views in Tasks 9 and 11.
     @ViewBuilder
     private func mainContent(_ root: FileNode) -> some View {
-        Text(root.name)
+        switch appState.viewMode {
+        case .list:
+            TreeListView(appState: appState, root: root)
+        case .treemap:
+            // Replaced with the real treemap in Task 11.
+            Text(L("view.treemap"))
+        }
     }
 
     @ToolbarContentBuilder
