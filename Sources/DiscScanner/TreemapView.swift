@@ -23,13 +23,14 @@ struct TreemapView: View {
             GeometryReader { proxy in
                 let bounds = CGRect(origin: .zero, size: proxy.size)
                 let tiles = TreemapLayout.layout(items: items(for: zoomRoot), in: bounds)
+                let byPath = Dictionary(uniqueKeysWithValues: zoomRoot.children.map { ($0.path, $0) })
                 Canvas { context, _ in
                     for tile in tiles {
-                        guard let node = zoomRoot.find(path: tile.id) else { continue }
+                        guard let node = byPath[tile.id] else { continue }
                         draw(node: node, in: tile.rect, context: &context)
                     }
                 }
-                .gesture(tapGestures(tiles: tiles))
+                .gesture(tapGestures(tiles: tiles, byPath: byPath))
                 .contextMenu {
                     Button(L("menu.showInFinder")) { revealSelection() }
                     Button(L("menu.delete"), role: .destructive) {
@@ -67,12 +68,12 @@ struct TreemapView: View {
         return base.opacity(0.55 + variation)
     }
 
-    private func tapGestures(tiles: [TreemapRect]) -> some Gesture {
+    private func tapGestures(tiles: [TreemapRect], byPath: [String: FileNode]) -> some Gesture {
         SpatialTapGesture(count: 2)
             .onEnded { value in
                 guard
                     let id = hitTest(tiles, at: value.location),
-                    let node = zoomRoot.find(path: id),
+                    let node = byPath[id],
                     node.isDirectory
                 else { return }
                 appState.treemapZoomPath = node.path
@@ -126,7 +127,7 @@ struct TreemapView: View {
         var currentPath = root.path
         var current = root
         for component in relative {
-            currentPath += "/" + component
+            currentPath = currentPath.hasSuffix("/") ? currentPath + component : currentPath + "/" + component
             guard let next = current.find(path: currentPath) else { break }
             nodes.append(next)
             current = next
