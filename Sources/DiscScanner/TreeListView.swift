@@ -6,14 +6,19 @@ private enum IconCache {
     private static var cache: [String: NSImage] = [:]
 
     static func icon(for node: FileNode) -> NSImage {
-        let cacheKey = node.outlineChildren != nil ? "//dir" : (node.path as NSString).pathExtension.lowercased().isEmpty ? "" : (node.path as NSString).pathExtension.lowercased()
+        let key: String
+        if node.isDirectory {
+            key = "//dir"
+        } else {
+            key = (node.path as NSString).pathExtension.lowercased()
+        }
 
-        if let cachedIcon = cache[cacheKey] {
+        if let cachedIcon = cache[key] {
             return cachedIcon
         }
 
         let icon = NSWorkspace.shared.icon(forFile: node.path)
-        cache[cacheKey] = icon
+        cache[key] = icon
         return icon
     }
 }
