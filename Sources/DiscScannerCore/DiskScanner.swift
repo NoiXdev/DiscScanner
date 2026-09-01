@@ -54,7 +54,7 @@ public final class DiskScanner: @unchecked Sendable {
     // here costs one batched lookup instead of a stat() per file later.
     private static let resourceKeys: [URLResourceKey] = [
         .isDirectoryKey, .isSymbolicLinkKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey,
-        .totalFileSizeKey, .fileSizeKey, .contentModificationDateKey, .fileOwnerAccountIDKey,
+        .totalFileSizeKey, .fileSizeKey, .contentModificationDateKey, .fileSecurityKey,
     ]
 
     /// Blocking parallel scan. Returns the final (or partial, if cancelled)
@@ -147,9 +147,16 @@ public final class DiskScanner: @unchecked Sendable {
         }
     }
 
-    /// URLResourceValues has no typed accessor for the owner, so it comes out
-    /// of the untyped bag — still from the same prefetched batch.
+    /// The owner's uid. URLResourceKey has no owner key at all — the URL API
+    /// only carries the whole file security record, and the uid sits behind
+    /// its Core Foundation side (NSFileSecurity is toll-free bridged to
+    /// CFFileSecurity). Still one prefetched batch per directory, which is
+    /// the point: a stat() per file would be felt on a volume scan.
     private static func ownerID(from values: URLResourceValues?) -> Int32? {
-        (values?.allValues[.fileOwnerAccountIDKey] as? NSNumber)?.int32Value
+        guard let security = values?.fileSecurity else { return nil }
+        var uid = uid_t.max
+        let record = unsafeBitCast(security, to: CFFileSecurity.self)
+        guard CFFileSecurityGetOwner(record, &uid) else { return nil }
+        return Int32(bitPattern: uid)
     }
 }
