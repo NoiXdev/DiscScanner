@@ -1,7 +1,5 @@
 "app.open" = "Open…";
 "app.cancel" = "Cancel";
-"view.list" = "List";
-"view.treemap" = "Treemap";
 "status.scanning" = "Scanning: %@";
 "status.done" = "Scan complete";
 "status.summary" = "%@ files · %@ folders · %@";
@@ -22,3 +20,77 @@
 "fda.later" = "Later";
 "empty.scanRoot" = "Scan “%@”";
 "status.remaining" = "about %@ left";
+
+/* Tabs */
+"tab.chart" = "Chart";
+"tab.details" = "Details";
+"tab.treemap" = "Treemap";
+"tab.extensions" = "Extensions";
+"tab.users" = "Users";
+"tab.age" = "Age of Files";
+"tab.topFiles" = "Top Files";
+"tab.history" = "History";
+
+/* Chart */
+"chart.empty" = "No data to chart yet.";
+"chart.settings" = "Chart settings";
+"chart.sizeMode" = "Size";
+"chart.size.allocated" = "Allocated";
+"chart.size.logical" = "Logical";
+"chart.style" = "Style";
+"chart.style.pie" = "Pie";
+"chart.style.donut" = "Donut";
+"chart.style.bar" = "Bars";
+"chart.maxSlices" = "Slices";
+"chart.groupFiles" = "Group loose files";
+"chart.showFreeSpace" = "Show free space";
+"chart.showPercentages" = "Show percentages";
+"chart.looseFiles" = "[%@ files]";
+"chart.others" = "Others";
+"chart.freeSpace" = "Free space";
+"chart.backToRoot" = "Back to the scan root";
+
+/* Shared column titles */
+"common.name" = "Name";
+"common.size" = "Size";
+"common.logicalSize" = "Logical";
+"common.files" = "Files";
+"common.path" = "Path";
+"common.date" = "Date";
+"common.modified" = "Modified";
+"common.owner" = "Owner";
+"common.age" = "Age";
+"common.share" = "Share";
+"common.none" = "None";
+"common.open" = "Open";
+"common.delete" = "Delete";
+"common.refresh" = "Refresh";
+
+/* Statistics */
+"stats.computing" = "Analysing scan…";
+"stats.empty" = "Run or open a scan to see statistics.";
+"ext.none" = "(no extension)";
+"age.today" = "Today";
+"age.week" = "This week";
+"age.month" = "This month";
+"age.quarter" = "Last 3 months";
+"age.year" = "This year";
+"age.twoYears" = "1–2 years";
+"age.older" = "Older than 2 years";
+"age.unknown" = "Unknown";
+
+/* History and comparison */
+"history.save" = "Save scan";
+"history.empty" = "No saved scans yet.";
+"history.baseline" = "Baseline";
+"history.target" = "Compare with";
+"history.currentScan" = "Current scan";
+"history.compare" = "Compare";
+"history.compareHint" = "Pick a baseline and something to compare it with.";
+"history.noChanges" = "Nothing changed above the threshold.";
+"history.delta" = "Change";
+"history.before" = "Before";
+"history.after" = "After";
+"history.counts" = "%@ added · %@ removed · %@ grown · %@ shrunk";
+"history.truncated" = "Showing the %@ biggest changes";
+"history.error" = "Saved scans";

@@ -113,6 +113,10 @@ public struct TopFile: Identifiable, Sendable, Equatable {
 
     public var id: String { path }
 
+    /// Sortable stand-in for the optional date: a file whose date is
+    /// unknown sorts as the oldest rather than dropping out of the column.
+    public var sortDate: Date { modificationDate ?? .distantPast }
+
     public init(node: FileNode) {
         self.name = node.name
         self.path = node.path

@@ -6,14 +6,8 @@ struct ContentView: View {
     @State private var showFullDiskAccessAlert = false
 
     var body: some View {
-        Group {
-            if let root = appState.root {
-                mainContent(root)
-            } else {
-                emptyState
-            }
-        }
-        .frame(minWidth: 700, minHeight: 450)
+        tabs
+        .frame(minWidth: 860, minHeight: 520)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .top, spacing: 0) {
             if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {
@@ -51,6 +45,17 @@ struct ContentView: View {
                     .joined(separator: "\n")
             )
         }
+        .alert(
+            L("history.error"),
+            isPresented: Binding(
+                get: { appState.storeError != nil },
+                set: { if !$0 { appState.storeError = nil } }
+            )
+        ) {
+            Button(L("common.ok"), role: .cancel) { appState.storeError = nil }
+        } message: {
+            Text(appState.storeError ?? "")
+        }
         .alert(L("fda.title"), isPresented: $showFullDiskAccessAlert) {
             Button(L("fda.openSettings")) { FullDiskAccess.openSystemSettings() }
             Button(L("fda.later"), role: .cancel) {}
@@ -64,13 +69,72 @@ struct ContentView: View {
         }
     }
 
+    /// One tab per way of reading the same scan. The tree and the treemap
+    /// fall back to the empty state when nothing is loaded; History works
+    /// without a scan, because opening a saved one is how you get a scan.
+    private var tabs: some View {
+        TabView(selection: $appState.tab) {
+            ChartTabView(appState: appState)
+                .tabItem { Label(L("tab.chart"), systemImage: "chart.pie") }
+                .tag(AppState.Tab.chart)
+
+            treeTab
+                .tabItem { Label(L("tab.details"), systemImage: "list.bullet.indent") }
+                .tag(AppState.Tab.details)
+
+            treemapTab
+                .tabItem { Label(L("tab.treemap"), systemImage: "square.grid.3x3.fill") }
+                .tag(AppState.Tab.treemap)
+
+            ExtensionsTabView(
+                statistics: appState.statistics,
+                isComputing: appState.isComputingStatistics
+            )
+            .tabItem { Label(L("tab.extensions"), systemImage: "doc.text") }
+            .tag(AppState.Tab.fileExtensions)
+
+            UsersTabView(
+                statistics: appState.statistics,
+                isComputing: appState.isComputingStatistics
+            )
+            .tabItem { Label(L("tab.users"), systemImage: "person.2") }
+            .tag(AppState.Tab.users)
+
+            AgeTabView(
+                statistics: appState.statistics,
+                isComputing: appState.isComputingStatistics
+            )
+            .tabItem { Label(L("tab.age"), systemImage: "calendar") }
+            .tag(AppState.Tab.age)
+
+            TopFilesTabView(
+                statistics: appState.statistics,
+                isComputing: appState.isComputingStatistics
+            )
+            .tabItem { Label(L("tab.topFiles"), systemImage: "arrow.up.doc") }
+            .tag(AppState.Tab.topFiles)
+
+            HistoryTabView(appState: appState)
+                .tabItem { Label(L("tab.history"), systemImage: "clock.arrow.circlepath") }
+                .tag(AppState.Tab.history)
+        }
+    }
+
     @ViewBuilder
-    private func mainContent(_ root: FileNode) -> some View {
-        switch appState.viewMode {
-        case .list:
+    private var treeTab: some View {
+        if let root = appState.root {
             TreeListView(appState: appState, root: root)
-        case .treemap:
+        } else {
+            emptyState
+        }
+    }
+
+    @ViewBuilder
+    private var treemapTab: some View {
+        if let root = appState.root {
             TreemapView(appState: appState, root: root)
+        } else {
+            emptyState
         }
     }
 
@@ -80,12 +144,13 @@ struct ContentView: View {
             Button(L("app.open"), systemImage: "folder") { openFolder() }
         }
         ToolbarItem {
-            Picker(L("view.list"), selection: $appState.viewMode) {
-                Text(L("view.list")).tag(AppState.ViewMode.list)
-                Text(L("view.treemap")).tag(AppState.ViewMode.treemap)
+            Button {
+                appState.saveCurrentScan()
+            } label: {
+                Label(L("history.save"), systemImage: "square.and.arrow.down")
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
+            .disabled(appState.root == nil || appState.isScanning || appState.isSavingScan)
+            .help(L("history.save"))
         }
         if appState.isScanning {
             ToolbarItem {

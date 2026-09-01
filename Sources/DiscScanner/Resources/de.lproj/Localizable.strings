@@ -1,7 +1,5 @@
 "app.open" = "Öffnen…";
 "app.cancel" = "Abbrechen";
-"view.list" = "Liste";
-"view.treemap" = "Treemap";
 "status.scanning" = "Scanne: %@";
 "status.done" = "Scan abgeschlossen";
 "status.summary" = "%@ Dateien · %@ Ordner · %@";
@@ -22,3 +20,77 @@
 "fda.later" = "Später";
 "empty.scanRoot" = "„%@“ scannen";
 "status.remaining" = "noch ca. %@";
+
+/* Tabs */
+"tab.chart" = "Diagramm";
+"tab.details" = "Details";
+"tab.treemap" = "Treemap";
+"tab.extensions" = "Dateitypen";
+"tab.users" = "Benutzer";
+"tab.age" = "Dateialter";
+"tab.topFiles" = "Größte Dateien";
+"tab.history" = "Verlauf";
+
+/* Chart */
+"chart.empty" = "Noch keine Daten für das Diagramm.";
+"chart.settings" = "Diagramm-Einstellungen";
+"chart.sizeMode" = "Größe";
+"chart.size.allocated" = "Belegt";
+"chart.size.logical" = "Logisch";
+"chart.style" = "Darstellung";
+"chart.style.pie" = "Kreis";
+"chart.style.donut" = "Ring";
+"chart.style.bar" = "Balken";
+"chart.maxSlices" = "Segmente";
+"chart.groupFiles" = "Einzelne Dateien zusammenfassen";
+"chart.showFreeSpace" = "Freien Speicher anzeigen";
+"chart.showPercentages" = "Prozentwerte anzeigen";
+"chart.looseFiles" = "[%@ Dateien]";
+"chart.others" = "Sonstige";
+"chart.freeSpace" = "Freier Speicher";
+"chart.backToRoot" = "Zurück zum Startordner";
+
+/* Shared column titles */
+"common.name" = "Name";
+"common.size" = "Größe";
+"common.logicalSize" = "Logisch";
+"common.files" = "Dateien";
+"common.path" = "Pfad";
+"common.date" = "Datum";
+"common.modified" = "Geändert";
+"common.owner" = "Besitzer";
+"common.age" = "Alter";
+"common.share" = "Anteil";
+"common.none" = "Keine";
+"common.open" = "Öffnen";
+"common.delete" = "Löschen";
+"common.refresh" = "Aktualisieren";
+
+/* Statistics */
+"stats.computing" = "Scan wird ausgewertet…";
+"stats.empty" = "Scan starten oder öffnen, um Auswertungen zu sehen.";
+"ext.none" = "(ohne Endung)";
+"age.today" = "Heute";
+"age.week" = "Diese Woche";
+"age.month" = "Dieser Monat";
+"age.quarter" = "Letzte 3 Monate";
+"age.year" = "Dieses Jahr";
+"age.twoYears" = "1–2 Jahre";
+"age.older" = "Älter als 2 Jahre";
+"age.unknown" = "Unbekannt";
+
+/* History and comparison */
+"history.save" = "Scan speichern";
+"history.empty" = "Noch keine gespeicherten Scans.";
+"history.baseline" = "Basis";
+"history.target" = "Vergleichen mit";
+"history.currentScan" = "Aktueller Scan";
+"history.compare" = "Vergleichen";
+"history.compareHint" = "Basis und Vergleichsziel auswählen.";
+"history.noChanges" = "Keine Änderungen oberhalb der Schwelle.";
+"history.delta" = "Änderung";
+"history.before" = "Vorher";
+"history.after" = "Nachher";
+"history.counts" = "%@ neu · %@ entfernt · %@ gewachsen · %@ geschrumpft";
+"history.truncated" = "Zeigt die %@ größten Änderungen";
+"history.error" = "Gespeicherte Scans";
