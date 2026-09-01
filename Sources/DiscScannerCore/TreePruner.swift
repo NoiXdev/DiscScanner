@@ -12,12 +12,16 @@ public enum TreePruner {
             .compactMap { removing(paths: paths, from: $0) }
             .sorted { $0.allocatedSize > $1.allocatedSize }
         let newSize = newChildren.reduce(Int64(0)) { $0 + $1.allocatedSize }
+        let newLogicalSize = newChildren.reduce(Int64(0)) { $0 + $1.logicalSize }
 
         return FileNode(
             name: node.name,
             path: node.path,
             isDirectory: true,
             allocatedSize: newSize,
+            logicalSize: newLogicalSize,
+            modificationDate: node.modificationDate,
+            ownerID: node.ownerID,
             isAccessDenied: node.isAccessDenied,
             children: newChildren
         )

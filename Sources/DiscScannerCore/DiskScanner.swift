@@ -49,8 +49,12 @@ public final class DiskScanner: @unchecked Sendable {
         }
     }
 
+    // Prefetched for every directory entry. The size, date and owner keys
+    // feed the Extensions / Users / Age-of-files statistics; asking for them
+    // here costs one batched lookup instead of a stat() per file later.
     private static let resourceKeys: [URLResourceKey] = [
         .isDirectoryKey, .isSymbolicLinkKey, .totalFileAllocatedSizeKey, .fileAllocatedSizeKey,
+        .totalFileSizeKey, .fileSizeKey, .contentModificationDateKey, .fileOwnerAccountIDKey,
     ]
 
     /// Blocking parallel scan. Returns the final (or partial, if cancelled)
@@ -121,12 +125,17 @@ public final class DiskScanner: @unchecked Sendable {
                         subdirectories.append(child)
                     } else {
                         let size = Int64(values?.totalFileAllocatedSize ?? values?.fileAllocatedSize ?? 0)
+                        let logical = Int64(values?.totalFileSize ?? values?.fileSize ?? 0)
                         child.allocatedSize = size
+                        child.logicalSize = logical
+                        child.modificationDate = values?.contentModificationDate
+                        child.ownerID = Self.ownerID(from: values)
                         progress.filesScanned += 1
                         progress.totalBytes += size
                         var ancestor: MutableNode? = node
                         while let current = ancestor {
                             current.allocatedSize += size
+                            current.logicalSize += logical
                             ancestor = current.parent
                         }
                     }
@@ -136,5 +145,11 @@ public final class DiskScanner: @unchecked Sendable {
                 scanDirectory(subdirectory, state: state, queue: queue, group: group)
             }
         }
+    }
+
+    /// URLResourceValues has no typed accessor for the owner, so it comes out
+    /// of the untyped bag — still from the same prefetched batch.
+    private static func ownerID(from values: URLResourceValues?) -> Int32? {
+        (values?.allValues[.fileOwnerAccountIDKey] as? NSNumber)?.int32Value
     }
 }

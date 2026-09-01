@@ -7,6 +7,9 @@ final class MutableNode {
     let path: String
     let isDirectory: Bool
     var allocatedSize: Int64 = 0
+    var logicalSize: Int64 = 0
+    var modificationDate: Date?
+    var ownerID: Int32?
     var isAccessDenied = false
     var children: [MutableNode] = []
     weak var parent: MutableNode?
@@ -37,6 +40,9 @@ final class MutableNode {
             path: path,
             isDirectory: isDirectory,
             allocatedSize: allocatedSize,
+            logicalSize: logicalSize,
+            modificationDate: modificationDate,
+            ownerID: ownerID,
             isAccessDenied: isAccessDenied,
             children: snapshotChildren
         )
