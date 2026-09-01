@@ -65,7 +65,7 @@ public struct ComparisonOptions: Sendable, Equatable {
     }
 }
 
-public struct ComparisonResult: Sendable, Equatable {
+public struct ComparisonReport: Sendable, Equatable {
     public var entries: [ChangeEntry] = []
     public var oldTotal: Int64 = 0
     public var newTotal: Int64 = 0
@@ -89,8 +89,8 @@ public enum SnapshotComparison {
         baseline: FileNode,
         current: FileNode,
         options: ComparisonOptions = ComparisonOptions()
-    ) -> ComparisonResult {
-        var result = ComparisonResult()
+    ) -> ComparisonReport {
+        var result = ComparisonReport()
         result.oldTotal = baseline.size(options.sizeMode)
         result.newTotal = current.size(options.sizeMode)
 

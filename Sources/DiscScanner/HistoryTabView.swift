@@ -134,7 +134,7 @@ struct HistoryTabView: View {
         .padding(.vertical, 8)
     }
 
-    private func comparisonResult(_ comparison: ComparisonResult) -> some View {
+    private func comparisonResult(_ comparison: ComparisonReport) -> some View {
         VStack(spacing: 0) {
             summaryBar(comparison)
             Divider()
@@ -176,7 +176,7 @@ struct HistoryTabView: View {
         }
     }
 
-    private func summaryBar(_ comparison: ComparisonResult) -> some View {
+    private func summaryBar(_ comparison: ComparisonReport) -> some View {
         HStack(spacing: 12) {
             if let labels = appState.comparisonLabels {
                 Text("\(labels.baseline) → \(labels.target)")

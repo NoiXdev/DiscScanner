@@ -20,7 +20,7 @@ enum StoreOutcome<Value: Sendable>: Sendable {
 
 /// What a finished comparison hands back to the UI.
 struct ComparisonOutcome: Sendable {
-    let result: ComparisonResult
+    let result: ComparisonReport
     let baselineLabel: String
     let targetLabel: String
 }
@@ -81,7 +81,7 @@ final class AppState {
     var storeError: String?
     var comparisonBaseline: UUID?
     var comparisonTarget: ComparisonTarget = .currentScan
-    var comparison: ComparisonResult?
+    var comparison: ComparisonReport?
     var comparisonLabels: (baseline: String, target: String)?
     var isComparing = false
 
