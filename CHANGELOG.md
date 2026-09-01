@@ -1,3 +1,18 @@
+## [1.1.0](https://github.com/NoiXdev/DiscScanner/compare/v1.0.1...v1.1.0) (2026-09-01)
+
+### Features
+
+* check GitHub for a newer release ([2e2abbe](https://github.com/NoiXdev/DiscScanner/commit/2e2abbe5b625c9f308f15f56bbbe1fe77b72abbf))
+* **core:** per-file metadata, statistics, saved scans  and comparison ([043f2aa](https://github.com/NoiXdev/DiscScanner/commit/043f2aa22a93f626de284d3ae606b985f989171c))
+* hide the tab bar until there is a scan, and fold it  into a menu when narrow ([55a27b3](https://github.com/NoiXdev/DiscScanner/commit/55a27b38fef99e821d5d3dada799b642dfcedf73))
+* tabbed analysis, chart with settings, saved scans  and comparison ([e896ca4](https://github.com/NoiXdev/DiscScanner/commit/e896ca4904e96b243316f596b0b193051db1dca5))
+
+### Bug Fixes
+
+* **core:** read the file owner through fileSecurity ([dfed38c](https://github.com/NoiXdev/DiscScanner/commit/dfed38cc25a6fcacf1d6231ace7c420646a108a3))
+* rename ComparisonResult to ComparisonReport ([ae56470](https://github.com/NoiXdev/DiscScanner/commit/ae564707450752f624b593d43cc298bbd35fb2fc))
+* stop the history halves from centring their content ([fdff709](https://github.com/NoiXdev/DiscScanner/commit/fdff7091887dd4a421e38c22bfef697df50d998c))
+
 ## [1.0.1](https://github.com/NoiXdev/DiscScanner/compare/v1.0.0...v1.0.1) (2026-09-01)
 
 ### Bug Fixes
