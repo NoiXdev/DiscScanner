@@ -67,7 +67,7 @@ private func root(_ children: [FileNode]) -> FileNode {
     #expect(slices.allSatisfy { $0.kind != .looseFiles })
 }
 
-@Test func theTailBecomesOthers() {
+@Test func theTailBecomesOthers() throws {
     let children = (1...10).map { node("d\($0)", Int64($0) * 100, isDirectory: true) }
     let slices = ChartSlices.make(
         for: root(children),
@@ -75,10 +75,13 @@ private func root(_ children: [FileNode]) -> FileNode {
     )
     #expect(slices.count == 4)
     #expect(Array(slices.map(\.size).prefix(3)) == [1000, 900, 800])
-    let others = slices.last
-    #expect(others?.kind == .others)
-    #expect(others?.size == 700 + 600 + 500 + 400 + 300 + 200 + 100)
-    #expect(others?.itemCount == 7)
+    let others = try #require(slices.last)
+    #expect(others.kind == .others)
+    // 700 + 600 + 500 + 400 + 300 + 200 + 100, written out: inside the
+    // #expect expansion a bare literal sum is type-checked on its own and
+    // settles on Int, which then never equals the Int64 it is compared to.
+    #expect(others.size == 2800)
+    #expect(others.itemCount == 7)
 }
 
 @Test func freeSpaceIsItsOwnSliceAndCountsTowardTheTotal() {
