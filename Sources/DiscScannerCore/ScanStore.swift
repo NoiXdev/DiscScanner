@@ -11,6 +11,11 @@ import Foundation
 /// first few hundred bytes of each file; the tree behind it compresses to a
 /// fraction of its JSON size, which matters when a volume scan serialises
 /// millions of nodes.
+///
+/// Both directions hold the whole tree in memory as JSON before compressing
+/// or after decompressing it, so saving a multi-million-file volume is a
+/// heavy moment. Streaming it would fix that; nothing here depends on the
+/// current shape, the format keeps the tree in one blob either way.
 public enum ScanStore {
     public static let fileExtension = "dscan"
 

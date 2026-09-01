@@ -22,6 +22,19 @@ or permanently.
   choice between **Move to Trash** (undoable) and **Delete Permanently**
   (with a warning). Sizes update immediately, no rescan needed.
 - **Reveal in Finder** from both views.
+- **Chart** — the current folder as a pie, donut or bar chart, with free
+  space in the picture for a whole volume. The legend lists share and
+  size, and clicking a folder drills into it; a breadcrumb takes you back.
+  Allocated or logical size, style, number of slices and grouping of
+  loose files are all settings, and they are remembered.
+- **Statistics tabs** — **Extensions** (what file types eat the disk),
+  **Users** (which owner), **Age of Files** (what has not been touched in
+  years) and **Top Files** (the biggest single files), each a sortable
+  table.
+- **Save scans and compare them** — keep a scan as a `.dscan` file and
+  open it again later, in every tab. The **History** tab compares two of
+  them — or a saved one against the scan on screen — and lists what grew,
+  shrank, appeared and vanished, biggest change first.
 - **Protected folders are handled gracefully** — anything unreadable is
   marked and skipped, never a crash or an aborted scan, with a hint on
   how to grant Full Disk Access for complete volume scans.
@@ -47,7 +60,11 @@ Full Disk Access — the scan summary counts them, and that is normal.
 ## Notes
 
 - Sizes are allocated-on-disk bytes, so totals can differ slightly from
-  the Finder's "logical" sizes.
+  the Finder's "logical" sizes. The chart and the statistics tables can
+  show logical sizes instead.
+- Saved scans live in `~/Library/Application Support/DiscScanner/Scans`.
+  They keep the whole tree, so a full volume scan is a large file even
+  compressed; delete the ones you no longer need in the History tab.
 - Deleting to the Trash can be undone in the Finder; permanent deletion
   cannot.
 
