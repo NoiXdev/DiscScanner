@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/NoiXdev/DiscScanner/compare/v1.0.0...v1.0.1) (2026-09-01)
+
+### Bug Fixes
+
+* never trap when the localization bundle is missing ([2b9abb4](https://github.com/NoiXdev/DiscScanner/commit/2b9abb434c8c7c7c069bad2ef37aa3dd8fc89a0d))
+
 ## [1.0.0](https://github.com/NoiXdev/DiscScanner/compare/0ebf1653b1ee1857636e4c53084d4e51fbbe52df...v1.0.0) (2026-08-28)
 
 ### Features
