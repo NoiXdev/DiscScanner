@@ -48,7 +48,6 @@
 "chart.looseFiles" = "[%@ files]";
 "chart.others" = "Others";
 "chart.freeSpace" = "Free space";
-"chart.backToRoot" = "Back to the scan root";
 
 /* Shared column titles */
 "common.name" = "Name";
@@ -97,3 +96,8 @@
 "tab.section" = "Section";
 "empty.savedScans" = "Saved scans…";
 "common.back" = "Back";
+"common.type" = "Type";
+"common.folder" = "Folder";
+"menu.open" = "Open";
+"nav.up" = "Up one level";
+"row.accessDenied" = "Unreadable — no access";

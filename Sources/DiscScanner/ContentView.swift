@@ -7,7 +7,12 @@ struct ContentView: View {
 
     var body: some View {
         content
-        .frame(minWidth: 520, minHeight: 420)
+        // Without the maxima a view that is content to be small — the
+        // history, say — floats in the middle of the window.
+        .frame(
+            minWidth: 520, maxWidth: .infinity,
+            minHeight: 420, maxHeight: .infinity
+        )
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .top, spacing: 0) {
             if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {

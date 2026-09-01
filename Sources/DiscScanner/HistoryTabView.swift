@@ -31,13 +31,14 @@ struct HistoryTabView: View {
                     } label: {
                         Label(L("common.back"), systemImage: "chevron.left")
                     }
+                } else {
+                    Button {
+                        appState.saveCurrentScan()
+                    } label: {
+                        Label(L("history.save"), systemImage: "square.and.arrow.down")
+                    }
+                    .disabled(appState.isScanning || appState.isSavingScan)
                 }
-                Button {
-                    appState.saveCurrentScan()
-                } label: {
-                    Label(L("history.save"), systemImage: "square.and.arrow.down")
-                }
-                .disabled(appState.root == nil || appState.isScanning || appState.isSavingScan)
                 if appState.isSavingScan {
                     ProgressView().controlSize(.small)
                 }

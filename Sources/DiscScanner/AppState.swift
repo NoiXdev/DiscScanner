@@ -76,6 +76,8 @@ final class AppState {
     var chartSettings = ChartSettings.load()
     /// Directory the chart is drilled into; nil is the scan root.
     var chartPath: String?
+    /// Directory the details table is browsing; nil is the scan root.
+    var detailsPath: String?
 
     var statistics: FileStatistics?
     var isComputingStatistics = false
@@ -99,6 +101,7 @@ final class AppState {
         selection = []
         treemapZoomPath = nil
         chartPath = nil
+        detailsPath = nil
         statistics = nil
         comparison = nil
         isShowingSavedScans = false
@@ -206,21 +209,36 @@ final class AppState {
         chartPath = path
     }
 
-    func chartBreadcrumb() -> [FileNode] {
+    /// The scan root down to `path`, for a breadcrumb bar. Walks by matching
+    /// path prefixes rather than by splitting the string: a name may contain
+    /// a surprise, the tree may not.
+    func breadcrumb(to path: String?) -> [FileNode] {
         guard let root else { return [] }
         var trail: [FileNode] = [root]
-        guard let chartPath, chartPath != root.path else { return trail }
+        guard let path, path != root.path else { return trail }
         var node = root
-        // Walk down by matching path prefixes rather than by splitting the
-        // string: a name may contain a slash-free surprise, the tree may not.
         while let next = node.children.first(where: {
-            chartPath == $0.path || chartPath.hasPrefix($0.path + "/")
+            path == $0.path || path.hasPrefix($0.path + "/")
         }) {
             trail.append(next)
-            if next.path == chartPath { break }
+            if next.path == path { break }
             node = next
         }
         return trail
+    }
+
+    /// The folder the details table is browsing, falling back to the root
+    /// when the path is gone — a deletion can take it away underneath us.
+    var detailsNode: FileNode? {
+        guard let root else { return nil }
+        guard let detailsPath else { return root }
+        return root.find(path: detailsPath) ?? root
+    }
+
+    /// Moves the details table into `node`, or back to the root for it.
+    func browseDetails(to node: FileNode) {
+        detailsPath = node.path == root?.path ? nil : node.path
+        selection = []
     }
 
     func persistChartSettings() {
@@ -287,6 +305,7 @@ final class AppState {
                 self.selection = []
                 self.treemapZoomPath = nil
                 self.chartPath = nil
+                self.detailsPath = nil
                 self.comparison = nil
                 self.scannedRootURL = nil
                 self.volumeFreeSpace = snapshot.summary.volumeFreeSpace

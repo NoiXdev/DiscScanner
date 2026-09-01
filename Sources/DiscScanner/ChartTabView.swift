@@ -34,15 +34,9 @@ struct ChartTabView: View {
 
     private var header: some View {
         HStack(spacing: 6) {
-            Button {
-                appState.chartPath = nil
-            } label: {
-                Image(systemName: "arrow.uturn.backward")
+            BreadcrumbBar(trail: appState.breadcrumb(to: appState.chartPath)) { node in
+                appState.chartPath = node.path == appState.root?.path ? nil : node.path
             }
-            .disabled(appState.chartPath == nil)
-            .help(L("chart.backToRoot"))
-
-            breadcrumb
             Spacer(minLength: 12)
             Text(Format.bytes(appState.chartNode?.size(appState.chartSettings.sizeMode) ?? 0))
                 .monospacedDigit()
@@ -51,24 +45,6 @@ struct ChartTabView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-    }
-
-    private var breadcrumb: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 4) {
-                ForEach(Array(appState.chartBreadcrumb().enumerated()), id: \.element.id) { index, node in
-                    if index > 0 {
-                        Image(systemName: "chevron.right")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                    Button(node.name.isEmpty ? node.path : node.name) {
-                        appState.chartPath = node.path == appState.root?.path ? nil : node.path
-                    }
-                    .buttonStyle(.link)
-                }
-            }
-        }
     }
 
     private var settingsMenu: some View {

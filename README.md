@@ -14,8 +14,10 @@ or permanently.
   the tree grows, sizes count up, and a status line shows elapsed time.
   Scanning a whole volume also shows percent done and a remaining-time
   estimate. Cancel any time and keep the partial result.
-- **Tree view** — expandable folder tree, largest first, with a size bar
-  per row showing each item's share of its parent.
+- **Details view** — the Finder's list view over scan data: sortable by
+  size (the default), name, type or date, with disclosure triangles for
+  what is below, a size bar per row, and a double-click to step into a
+  folder. A breadcrumb walks back out.
 - **Treemap view** — the classic mosaic: big files are big rectangles.
   Double-click zooms into a folder, a breadcrumb takes you back up.
 - **Delete from the app** — single or multi-selection, with a clear
