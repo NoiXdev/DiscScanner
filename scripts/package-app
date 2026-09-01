@@ -1,9 +1,9 @@
 #!/bin/bash
 # Assembles dist/DiscScanner.app from a fresh release build (universal
-# binary). Localization NOTE (macSCP M5i lesson): macOS picks the app
-# language from the MAIN bundle's localizations — the empty en.lproj/de.lproj
-# markers are what make the German strings inside the SPM resource bundle
-# reachable at all.
+# binary). Localization NOTE: macOS picks the app language from the MAIN
+# bundle's localizations, so the real en.lproj/de.lproj go there — not the
+# empty marker directories 1.0.0 shipped, which left the strings reachable
+# only through the SwiftPM resource bundle.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -25,9 +25,13 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 lipo -create "$ARM_BIN/DiscScanner" "$X86_BIN/DiscScanner" \
     -output "$APP/Contents/MacOS/DiscScanner"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+# The string tables, straight from the sources: an app that cannot find
+# them shows raw keys, and before this it crashed on the first view.
+cp -R Sources/DiscScanner/Resources/en.lproj Sources/DiscScanner/Resources/de.lproj \
+    "$APP/Contents/Resources/"
 # Resource bundles are architecture-independent — take the arm64 build's.
+# Still shipped so a `swift run`-style lookup keeps working.
 cp -R "$ARM_BIN/DiscScanner_DiscScanner.bundle" "$APP/Contents/Resources/"
-mkdir "$APP/Contents/Resources/en.lproj" "$APP/Contents/Resources/de.lproj"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -64,5 +68,8 @@ test -x "$APP/Contents/MacOS/DiscScanner"
 lipo -archs "$APP/Contents/MacOS/DiscScanner" | grep -q x86_64
 lipo -archs "$APP/Contents/MacOS/DiscScanner" | grep -q arm64
 test -d "$APP/Contents/Resources/DiscScanner_DiscScanner.bundle"
-test -d "$APP/Contents/Resources/en.lproj" -a -d "$APP/Contents/Resources/de.lproj"
+# Not just the directories — the tables themselves, and parseable.
+for lang in en de; do
+    plutil -lint "$APP/Contents/Resources/$lang.lproj/Localizable.strings"
+done
 echo "wrote $APP (v${VERSION}, build ${BUILD})"
