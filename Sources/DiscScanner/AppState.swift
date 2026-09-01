@@ -82,6 +82,13 @@ final class AppState {
     var statistics: FileStatistics?
     var isComputingStatistics = false
 
+    var updateOutcome: UpdateCheck.Outcome?
+    var isCheckingForUpdates = false
+    /// Text for the update alert — only a manual check reports back; the one
+    /// at launch stays quiet unless it has something to offer.
+    var updateMessage: String?
+    var updateBannerDismissed = false
+
     var savedScans: [ScanStore.Entry] = []
     var isSavingScan = false
     var storeError: String?
@@ -422,6 +429,105 @@ final class AppState {
             case .failure(let message):
                 self.storeError = message
             }
+        }
+    }
+
+    // MARK: - Updates
+
+    /// Repository the release check asks about.
+    static let repositoryOwner = "NoiXdev"
+    static let repositoryName = "DiscScanner"
+
+    private static let lastCheckKey = "lastUpdateCheck"
+    private static let dismissedTagKey = "dismissedUpdateTag"
+    private static let automaticChecksKey = "automaticUpdateChecks"
+    private static let checkInterval: TimeInterval = 24 * 60 * 60
+
+    /// What the app reports itself as; nil when it runs without a bundle,
+    /// which is what `swift run` does.
+    var currentVersion: String? {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    }
+
+    /// `force` is a manual check: it ignores the once-a-day limit, the
+    /// opt-out, and a banner dismissed for this version, and it always
+    /// reports back — that is the difference between asking and being told.
+    func checkForUpdates(force: Bool) {
+        guard !isCheckingForUpdates else { return }
+        let defaults = UserDefaults.standard
+        if !force {
+            if defaults.object(forKey: Self.automaticChecksKey) != nil,
+               !defaults.bool(forKey: Self.automaticChecksKey) {
+                return
+            }
+            if let last = defaults.object(forKey: Self.lastCheckKey) as? Date,
+               Date().timeIntervalSince(last) < Self.checkInterval {
+                return
+            }
+        }
+
+        let version = currentVersion
+        let userAgent = "DiscScanner/\(version ?? "dev") (+https://github.com/\(Self.repositoryOwner)/\(Self.repositoryName))"
+        isCheckingForUpdates = true
+        Task { [weak self] in
+            defer { self?.isCheckingForUpdates = false }
+            do {
+                let release = try await UpdateCheck.fetchLatestRelease(
+                    owner: Self.repositoryOwner,
+                    repo: Self.repositoryName,
+                    userAgent: userAgent
+                )
+                guard let self else { return }
+                UserDefaults.standard.set(Date(), forKey: Self.lastCheckKey)
+                let outcome = UpdateCheck.evaluate(
+                    release: release,
+                    currentVersion: version ?? ""
+                )
+                self.apply(outcome, manual: force)
+            } catch {
+                guard let self, force else { return }
+                self.updateMessage = Self.message(for: error)
+            }
+        }
+    }
+
+    private func apply(_ outcome: UpdateCheck.Outcome, manual: Bool) {
+        let defaults = UserDefaults.standard
+        updateOutcome = outcome
+        switch outcome {
+        case .updateAvailable(let release):
+            let dismissed = defaults.string(forKey: Self.dismissedTagKey)
+            updateBannerDismissed = !manual && dismissed == release.tagName
+            if manual { defaults.removeObject(forKey: Self.dismissedTagKey) }
+        case .upToDate(let release):
+            updateBannerDismissed = true
+            if manual { updateMessage = L("update.upToDate", release.displayName) }
+        case .unknownVersion:
+            updateBannerDismissed = true
+            if manual { updateMessage = L("update.unknownVersion") }
+        }
+    }
+
+    /// Keeps the banner away for this release, this time for good.
+    func dismissUpdateBanner() {
+        if case .updateAvailable(let release) = updateOutcome {
+            UserDefaults.standard.set(release.tagName, forKey: Self.dismissedTagKey)
+        }
+        updateBannerDismissed = true
+    }
+
+    private static func message(for error: Error) -> String {
+        switch error {
+        case UpdateCheckError.rateLimited:
+            return L("update.error.rateLimited")
+        case UpdateCheckError.notFound:
+            return L("update.error.notFound")
+        case UpdateCheckError.invalidRepository, UpdateCheckError.invalidResponse:
+            return L("update.error.response")
+        case UpdateCheckError.badStatus(let code):
+            return L("update.error.status", String(code))
+        default:
+            return L("update.error.network", error.localizedDescription)
         }
     }
 

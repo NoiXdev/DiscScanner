@@ -14,5 +14,14 @@ struct DiscScannerApp: App {
                     NSApp.activate(ignoringOtherApps: true)
                 }
         }
+        .commands {
+            // Next to "About DiscScanner", where a Mac app keeps this.
+            CommandGroup(after: .appInfo) {
+                Button(L("update.check")) {
+                    appState.checkForUpdates(force: true)
+                }
+                .disabled(appState.isCheckingForUpdates)
+            }
+        }
     }
 }

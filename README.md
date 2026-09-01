@@ -41,6 +41,9 @@ or permanently.
   marked and skipped, never a crash or an aborted scan, with a hint on
   how to grant Full Disk Access for complete volume scans.
 - **English and German** interface.
+- **Update check** — asks GitHub once a day whether a newer release exists
+  and offers a link to it; *DiscScanner ▸ Check for Updates…* asks on
+  demand.
 
 ## Install
 
@@ -64,6 +67,12 @@ Full Disk Access — the scan summary counts them, and that is normal.
 - Sizes are allocated-on-disk bytes, so totals can differ slightly from
   the Finder's "logical" sizes. The chart and the statistics tables can
   show logical sizes instead.
+- The update check calls the public GitHub releases API once every 24
+  hours and sends nothing but the app version in the user-agent header. To
+  switch the automatic part off (the menu item keeps working):
+
+      defaults write dev.noix.discscanner automaticUpdateChecks -bool false
+
 - Saved scans live in `~/Library/Application Support/DiscScanner/Scans`.
   They keep the whole tree, so a full volume scan is a large file even
   compressed; delete the ones you no longer need in the History tab.

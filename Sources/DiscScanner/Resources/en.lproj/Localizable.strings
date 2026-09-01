@@ -101,3 +101,17 @@
 "menu.open" = "Open";
 "nav.up" = "Up one level";
 "row.accessDenied" = "Unreadable — no access";
+
+/* Update check */
+"update.check" = "Check for Updates…";
+"update.title" = "Software update";
+"update.available" = "Version %@ is available.";
+"update.open" = "Open release";
+"update.dismiss" = "Do not show this version again";
+"update.upToDate" = "DiscScanner is up to date (%@).";
+"update.unknownVersion" = "This build does not report a version, so there is nothing to compare against.";
+"update.error.rateLimited" = "GitHub turned the request away — too many checks from this address. Try again later.";
+"update.error.notFound" = "No published release found.";
+"update.error.response" = "GitHub answered with something this app could not read.";
+"update.error.status" = "GitHub answered with status %@.";
+"update.error.network" = "Update check failed: %@";

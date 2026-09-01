@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import DiscScannerCore
 
@@ -15,8 +16,14 @@ struct ContentView: View {
         )
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .top, spacing: 0) {
-            if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {
-                accessDeniedBanner
+            VStack(spacing: 0) {
+                if case .updateAvailable(let release) = appState.updateOutcome,
+                   !appState.updateBannerDismissed {
+                    updateBanner(release)
+                }
+                if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {
+                    accessDeniedBanner
+                }
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { statusBar }
@@ -61,6 +68,17 @@ struct ContentView: View {
         } message: {
             Text(appState.storeError ?? "")
         }
+        .alert(
+            L("update.title"),
+            isPresented: Binding(
+                get: { appState.updateMessage != nil },
+                set: { if !$0 { appState.updateMessage = nil } }
+            )
+        ) {
+            Button(L("common.ok"), role: .cancel) { appState.updateMessage = nil }
+        } message: {
+            Text(appState.updateMessage ?? "")
+        }
         .alert(L("fda.title"), isPresented: $showFullDiskAccessAlert) {
             Button(L("fda.openSettings")) { FullDiskAccess.openSystemSettings() }
             Button(L("fda.later"), role: .cancel) {}
@@ -71,6 +89,7 @@ struct ContentView: View {
             if !FullDiskAccess.isGranted {
                 showFullDiskAccessAlert = true
             }
+            appState.checkForUpdates(force: false)
         }
     }
 
@@ -317,6 +336,30 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(.bar)
+    }
+
+    private func updateBanner(_ release: ReleaseInfo) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundStyle(.tint)
+            Text(L("update.available", release.displayName))
+            Button(L("update.open")) {
+                NSWorkspace.shared.open(release.htmlURL)
+            }
+            .buttonStyle(.link)
+            Spacer()
+            Button {
+                appState.dismissUpdateBanner()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(L("update.dismiss"))
+        }
+        .font(.callout)
+        .padding(8)
+        .background(.tint.opacity(0.12))
     }
 
     private var accessDeniedBanner: some View {

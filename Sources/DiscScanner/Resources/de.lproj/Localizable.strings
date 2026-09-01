@@ -101,3 +101,17 @@
 "menu.open" = "Öffnen";
 "nav.up" = "Eine Ebene höher";
 "row.accessDenied" = "Nicht lesbar — kein Zugriff";
+
+/* Update check */
+"update.check" = "Nach Updates suchen…";
+"update.title" = "Software-Update";
+"update.available" = "Version %@ ist verfügbar.";
+"update.open" = "Release öffnen";
+"update.dismiss" = "Diese Version nicht mehr anzeigen";
+"update.upToDate" = "DiscScanner ist aktuell (%@).";
+"update.unknownVersion" = "Dieser Build meldet keine Version, es gibt also nichts zu vergleichen.";
+"update.error.rateLimited" = "GitHub hat die Anfrage abgewiesen — zu viele Prüfungen von dieser Adresse. Später erneut versuchen.";
+"update.error.notFound" = "Kein veröffentlichtes Release gefunden.";
+"update.error.response" = "GitHub hat mit etwas geantwortet, das die App nicht lesen kann.";
+"update.error.status" = "GitHub hat mit Status %@ geantwortet.";
+"update.error.network" = "Update-Prüfung fehlgeschlagen: %@";
