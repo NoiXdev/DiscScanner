@@ -11,9 +11,9 @@ struct HistoryTabView: View {
     var body: some View {
         VSplitView {
             savedScansSection
-                .frame(minHeight: 160, idealHeight: 240)
+                .frame(minHeight: 160, idealHeight: 260, maxHeight: .infinity)
             comparisonSection
-                .frame(minHeight: 200)
+                .frame(minHeight: 200, maxHeight: .infinity)
         }
         .onAppear { appState.refreshSavedScans() }
     }
@@ -57,6 +57,7 @@ struct HistoryTabView: View {
 
             if appState.savedScans.isEmpty {
                 ContentUnavailableView(L("history.empty"), systemImage: "clock.arrow.circlepath")
+                    .frame(maxHeight: .infinity)
             } else {
                 Table(appState.savedScans) {
                     TableColumn(L("common.name")) { entry in
@@ -96,6 +97,10 @@ struct HistoryTabView: View {
                 }
             }
         }
+        // Fill the split-view pane and stay at its top: an empty state has a
+        // height of its own, and a frame taller than its content centres it,
+        // which is what left a hole above the header.
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     // MARK: - Comparison
@@ -108,8 +113,10 @@ struct HistoryTabView: View {
                 comparisonResult(comparison)
             } else {
                 ContentUnavailableView(L("history.compareHint"), systemImage: "arrow.left.arrow.right")
+                    .frame(maxHeight: .infinity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 
     private var comparisonControls: some View {

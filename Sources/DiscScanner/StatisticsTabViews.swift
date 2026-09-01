@@ -23,6 +23,7 @@ struct StatisticsContainer<Content: View>: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ContentUnavailableView(L("stats.empty"), systemImage: "chart.bar.doc.horizontal")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }

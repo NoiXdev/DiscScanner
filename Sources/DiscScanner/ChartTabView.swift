@@ -15,6 +15,7 @@ struct ChartTabView: View {
             Divider()
             if slices.isEmpty {
                 ContentUnavailableView(L("chart.empty"), systemImage: "chart.pie")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 HStack(alignment: .top, spacing: 20) {
                     chart
