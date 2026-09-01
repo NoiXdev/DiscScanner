@@ -94,3 +94,6 @@
 "history.counts" = "%@ added · %@ removed · %@ grown · %@ shrunk";
 "history.truncated" = "Showing the %@ biggest changes";
 "history.error" = "Saved scans";
+"tab.section" = "Section";
+"empty.savedScans" = "Saved scans…";
+"common.back" = "Back";

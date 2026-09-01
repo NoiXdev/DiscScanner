@@ -6,8 +6,8 @@ struct ContentView: View {
     @State private var showFullDiskAccessAlert = false
 
     var body: some View {
-        tabs
-        .frame(minWidth: 860, minHeight: 520)
+        content
+        .frame(minWidth: 520, minHeight: 420)
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .top, spacing: 0) {
             if appState.progress.accessDeniedCount > 0, !appState.accessBannerDismissed {
@@ -69,54 +69,126 @@ struct ContentView: View {
         }
     }
 
-    /// One tab per way of reading the same scan. The tree and the treemap
-    /// fall back to the empty state when nothing is loaded; History works
-    /// without a scan, because opening a saved one is how you get a scan.
-    private var tabs: some View {
-        TabView(selection: $appState.tab) {
+    /// Below this width the tab bar stops fitting eight titles and turns
+    /// into a menu.
+    private static let compactWidth: CGFloat = 840
+
+    /// With no scan there is nothing to put in seven of the eight tabs, so
+    /// the bar stays away entirely and the window is just the invitation to
+    /// scan — plus the one door that does work without a scan: the history,
+    /// because opening a saved scan is how you get one without waiting.
+    @ViewBuilder
+    private var content: some View {
+        if appState.root != nil {
+            scanContent
+        } else if appState.isShowingSavedScans {
+            HistoryTabView(appState: appState)
+        } else {
+            emptyState
+        }
+    }
+
+    private var scanContent: some View {
+        GeometryReader { proxy in
+            Group {
+                if proxy.size.width < Self.compactWidth {
+                    VStack(spacing: 0) {
+                        tabPicker
+                        Divider()
+                        tabContent(appState.tab)
+                    }
+                } else {
+                    TabView(selection: $appState.tab) {
+                        ForEach(AppState.Tab.allCases) { tab in
+                            tabContent(tab)
+                                .tabItem { Label(title(of: tab), systemImage: icon(of: tab)) }
+                                .tag(tab)
+                        }
+                    }
+                }
+            }
+            // A GeometryReader sizes its content to the child's ideal size,
+            // not to the space it measured — without this the tabs would sit
+            // in the corner of the window.
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
+    }
+
+    private var tabPicker: some View {
+        HStack {
+            Picker(L("tab.section"), selection: $appState.tab) {
+                ForEach(AppState.Tab.allCases) { tab in
+                    Label(title(of: tab), systemImage: icon(of: tab)).tag(tab)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .fixedSize()
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
+    @ViewBuilder
+    private func tabContent(_ tab: AppState.Tab) -> some View {
+        switch tab {
+        case .chart:
             ChartTabView(appState: appState)
-                .tabItem { Label(L("tab.chart"), systemImage: "chart.pie") }
-                .tag(AppState.Tab.chart)
-
+        case .details:
             treeTab
-                .tabItem { Label(L("tab.details"), systemImage: "list.bullet.indent") }
-                .tag(AppState.Tab.details)
-
+        case .treemap:
             treemapTab
-                .tabItem { Label(L("tab.treemap"), systemImage: "square.grid.3x3.fill") }
-                .tag(AppState.Tab.treemap)
-
+        case .fileExtensions:
             ExtensionsTabView(
                 statistics: appState.statistics,
                 isComputing: appState.isComputingStatistics
             )
-            .tabItem { Label(L("tab.extensions"), systemImage: "doc.text") }
-            .tag(AppState.Tab.fileExtensions)
-
+        case .users:
             UsersTabView(
                 statistics: appState.statistics,
                 isComputing: appState.isComputingStatistics
             )
-            .tabItem { Label(L("tab.users"), systemImage: "person.2") }
-            .tag(AppState.Tab.users)
-
+        case .age:
             AgeTabView(
                 statistics: appState.statistics,
                 isComputing: appState.isComputingStatistics
             )
-            .tabItem { Label(L("tab.age"), systemImage: "calendar") }
-            .tag(AppState.Tab.age)
-
+        case .topFiles:
             TopFilesTabView(
                 statistics: appState.statistics,
                 isComputing: appState.isComputingStatistics
             )
-            .tabItem { Label(L("tab.topFiles"), systemImage: "arrow.up.doc") }
-            .tag(AppState.Tab.topFiles)
-
+        case .history:
             HistoryTabView(appState: appState)
-                .tabItem { Label(L("tab.history"), systemImage: "clock.arrow.circlepath") }
-                .tag(AppState.Tab.history)
+        }
+    }
+
+    // Spelled out rather than derived from the raw value: a renamed case
+    // would otherwise silently lose its title.
+    private func title(of tab: AppState.Tab) -> String {
+        switch tab {
+        case .chart: return L("tab.chart")
+        case .details: return L("tab.details")
+        case .treemap: return L("tab.treemap")
+        case .fileExtensions: return L("tab.extensions")
+        case .users: return L("tab.users")
+        case .age: return L("tab.age")
+        case .topFiles: return L("tab.topFiles")
+        case .history: return L("tab.history")
+        }
+    }
+
+    private func icon(of tab: AppState.Tab) -> String {
+        switch tab {
+        case .chart: return "chart.pie"
+        case .details: return "list.bullet.indent"
+        case .treemap: return "square.grid.3x3.fill"
+        case .fileExtensions: return "doc.text"
+        case .users: return "person.2"
+        case .age: return "calendar"
+        case .topFiles: return "arrow.up.doc"
+        case .history: return "clock.arrow.circlepath"
         }
     }
 
@@ -179,6 +251,11 @@ struct ContentView: View {
                     openFolder()
                 } label: {
                     Label(L("app.open"), systemImage: "folder")
+                }
+                Button {
+                    appState.isShowingSavedScans = true
+                } label: {
+                    Label(L("empty.savedScans"), systemImage: "clock.arrow.circlepath")
                 }
             }
         }

@@ -23,6 +23,15 @@ struct HistoryTabView: View {
     private var savedScansSection: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
+                // Shown on its own, without the tab bar, this view needs its
+                // own way back to the empty state.
+                if appState.root == nil {
+                    Button {
+                        appState.isShowingSavedScans = false
+                    } label: {
+                        Label(L("common.back"), systemImage: "chevron.left")
+                    }
+                }
                 Button {
                     appState.saveCurrentScan()
                 } label: {

@@ -94,3 +94,6 @@
 "history.counts" = "%@ neu · %@ entfernt · %@ gewachsen · %@ geschrumpft";
 "history.truncated" = "Zeigt die %@ größten Änderungen";
 "history.error" = "Gespeicherte Scans";
+"tab.section" = "Ansicht";
+"empty.savedScans" = "Gespeicherte Scans…";
+"common.back" = "Zurück";

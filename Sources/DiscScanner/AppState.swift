@@ -50,9 +50,13 @@ final class AppState {
     var root: FileNode?
     var progress = ScanProgress()
     var isScanning = false
-    /// Starts on the tree: with no scan loaded that tab is the one that
-    /// offers to start one.
+    /// Starts on the tree: it is the first thing to look at once a scan
+    /// finishes, and the tab bar only appears then anyway.
     var tab: Tab = .details
+    /// Set from the empty state: the history is the one view worth showing
+    /// before a scan exists, because opening a saved one is how you get a
+    /// scan without waiting for the disk.
+    var isShowingSavedScans = false
     var selection: Set<String> = []
     var treemapZoomPath: String?
     var pendingDeletePaths: [String] = []
@@ -97,6 +101,7 @@ final class AppState {
         chartPath = nil
         statistics = nil
         comparison = nil
+        isShowingSavedScans = false
         progress = ScanProgress()
         isScanning = true
         scanStartDate = Date()
